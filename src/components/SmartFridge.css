@@ -1,0 +1,401 @@
+/* ── Fridge shell & interior variables ──────────────────────────────────── */
+.smart-fridge {
+  --fridge-shell: #2a2c30;
+  --fridge-shell-hi: #3e4147;
+  --fridge-interior: #eef2f4;
+  --fridge-interior-deep: #dde4e8;
+  --fridge-glow: rgba(200, 230, 255, 0.55);
+  --fridge-border: #1a1c1f;
+  --fridge-steel: #4a4e57;
+
+  --cold-blue: #b8d4e8;
+  --cold-blue-dim: rgba(184, 212, 232, 0.25);
+  --cold-text: #2c3e4a;
+  --cold-text-muted: #5a7080;
+  --cold-divider: rgba(120, 160, 180, 0.2);
+
+  --pill-bg: rgba(120, 160, 180, 0.15);
+  --pill-text: #3a5a6e;
+
+  --action-bg: #f5ede6;
+  --action-border: rgba(180, 130, 100, 0.25);
+
+  --radius-shell: 18px;
+  --radius-inner: 12px;
+
+  --font: system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  /* Outer steel shell */
+  font-family: var(--font);
+  width: 420px;
+  max-width: 100%;
+  border-radius: var(--radius-shell);
+  background: linear-gradient(160deg, var(--fridge-shell-hi) 0%, var(--fridge-shell) 40%, #222426 100%);
+  border: 1.5px solid var(--fridge-border);
+  box-shadow:
+    0 0 0 1px var(--fridge-steel) inset,
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.35);
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+/* Interior panel */
+.fridge-interior {
+  background: var(--fridge-interior);
+  border-radius: var(--radius-inner);
+  box-shadow:
+    0 0 40px 10px var(--fridge-glow) inset,
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 200px;
+  position: relative;
+
+  /* Overhead LED light strip */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 3px;
+    background: rgba(200, 235, 255, 0.8);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 18px 6px var(--fridge-glow);
+    pointer-events: none;
+  }
+}
+
+/* ── Food search ────────────────────────────────────────────────────────── */
+.food-search {
+  position: relative;
+}
+
+.food-search input[type='search'] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 14px;
+  font: 14px/1.4 var(--font);
+  color: var(--cold-text);
+  background: #e4ecf0;
+  border: 1px solid rgba(140, 180, 200, 0.4);
+  border-radius: 8px;
+  outline: none;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.1) inset,
+    0 1px 0 rgba(255, 255, 255, 0.7);
+  appearance: none;
+  -webkit-appearance: none;
+
+  &::placeholder {
+    color: var(--cold-text-muted);
+    opacity: 0.75;
+  }
+
+  &:focus {
+    border-color: var(--cold-blue);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.1) inset,
+      0 0 0 2px rgba(184, 212, 232, 0.4);
+    background: #e8f0f5;
+  }
+}
+
+.food-search-status {
+  margin: 6px 0 0;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--cold-text-muted);
+}
+
+.food-search-results {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px;
+  background: #e0eaef;
+  border: 1px solid rgba(140, 180, 200, 0.35);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.food-search-results li {
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.food-search-results button {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: background 0.12s;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--cold-blue-dim);
+    outline: none;
+  }
+}
+
+/* ── Shared food label pieces ───────────────────────────────────────────── */
+.food-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cold-text);
+}
+
+.food-brand {
+  font-size: 11px;
+  color: var(--cold-text-muted);
+}
+
+.food-macros {
+  font-size: 11px;
+  color: var(--cold-text-muted);
+  margin-top: 1px;
+}
+
+/* ── Add-item form (action tray) ────────────────────────────────────────── */
+.add-item-form {
+  background: var(--action-bg);
+  border: 1px solid var(--action-border);
+  border-radius: var(--radius-inner);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--cold-text);
+}
+
+.add-item-form p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--cold-text-muted);
+}
+
+.add-item-form strong {
+  color: var(--cold-text);
+}
+
+.add-item-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cold-text-muted);
+}
+
+.add-item-form input {
+  padding: 7px 10px;
+  font: 13px/1.4 var(--font);
+  color: var(--cold-text);
+  background: #fdf8f5;
+  border: 1px solid rgba(180, 130, 100, 0.3);
+  border-radius: 6px;
+  outline: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07) inset;
+
+  &:focus {
+    border-color: rgba(180, 130, 100, 0.6);
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.07) inset,
+      0 0 0 2px rgba(180, 130, 100, 0.18);
+  }
+}
+
+/* Unit combobox */
+.unit-combobox {
+  position: relative;
+  display: flex;
+}
+
+.unit-combobox input {
+  flex: 1;
+  border-radius: 6px 0 0 6px !important;
+}
+
+.unit-toggle {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  flex-shrink: 0;
+  background: #f0e8e1;
+  border: 1px solid rgba(180, 130, 100, 0.3);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  color: var(--cold-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.12s;
+
+  &:hover {
+    background: #e8ddd5;
+  }
+}
+
+.unit-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: #fdf8f5;
+  border: 1px solid rgba(180, 130, 100, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.unit-dropdown li button {
+  all: unset;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  font: 13px/1.4 var(--font);
+  color: var(--cold-text);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(180, 130, 100, 0.12);
+  }
+}
+
+.add-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.add-item-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  font: 600 12px/1 var(--font);
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.12s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &[type='submit'] {
+    background: var(--cold-text);
+    color: #fff;
+  }
+
+  &[type='button'] {
+    background: rgba(0, 0, 0, 0.07);
+    color: var(--cold-text-muted);
+  }
+}
+
+/* ── Fridge contents list ───────────────────────────────────────────────── */
+.fridge-status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--cold-text-muted);
+  text-align: center;
+}
+
+.fridge-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fridge-item {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--cold-divider);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.fridge-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fridge-item-title {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fridge-item-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--cold-text-muted);
+}
+
+.fridge-item-macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fridge-item-macros span {
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pill-text);
+  background: var(--pill-bg);
+  border-radius: 20px;
+}
+
+.remove-btn {
+  all: unset;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cold-text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(200, 60, 60, 0.12);
+    color: #b03030;
+  }
+}

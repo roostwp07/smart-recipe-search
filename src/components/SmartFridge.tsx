@@ -7,6 +7,7 @@ import FoodSearch from './FoodSearch'
 import type { Food } from './FoodSearch'
 import AddItemForm from './AddItemForm'
 import FridgeDisplay from './FridgeDisplay'
+import './SmartFridge.css'
 
 export interface SmartFridgeProps {
   supabaseUrl: string
@@ -34,15 +35,17 @@ function FridgeRoot({ onItemAdded, onItemRemoved }: Pick<SmartFridgeProps, 'onIt
 
   return (
     <div className="smart-fridge">
-      <FoodSearch onFoodSelected={setPendingFood} />
-      {pendingFood && (
-        <AddItemForm
-          food={pendingFood}
-          onConfirm={handleConfirmAdd}
-          onCancel={() => setPendingFood(null)}
-        />
-      )}
-      <FridgeDisplay items={items} isLoading={isLoading} onRemove={handleRemove} />
+      <div className="fridge-interior">
+        <FoodSearch onFoodSelected={setPendingFood} />
+        {pendingFood && (
+          <AddItemForm
+            food={pendingFood}
+            onConfirm={handleConfirmAdd}
+            onCancel={() => setPendingFood(null)}
+          />
+        )}
+        <FridgeDisplay items={items} isLoading={isLoading} onRemove={handleRemove} />
+      </div>
     </div>
   )
 }
