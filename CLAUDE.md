@@ -57,3 +57,12 @@ V1 is just the fridge. No recipe logic yet. The goal is to let a user search for
 - **V2 — Recipe search**: Given what's in the fridge, as well as the specific nutrition information of each item (e.g. exact calories and protein; this can often vary across different brands even for the same food), allow the user to enter the exact nutritional information (e.g. 600 calories and 40 g protein) they want in a recipe into the search engine, then return exact matching results followed by close matches (haven't yet determined what constitutes a close match). These must be real recipes made by real people scraped from the internet, with ratings that can be openly displayed. Sort the recipes first by relevance, then by time (the less time it takes to make, the better). Likely integrates a recipe API or dataset.
 - **Micro-app export**: Bundle the component so it can self-mount into any page via a script tag and `SmartFridge.init({ target, config })`, framework-agnostic.
 - **Barcode scanning**: Use Open Food Facts barcode lookup API as a fallback for products not in the local DB.
+
+## Visual concept: closed/open fridge states
+
+The component will eventually have two distinct states, both fully committed to the fridge metaphor:
+
+- **Closed fridge** (V1 and beyond): The front/door of the fridge. A screen embedded in the door shows the current UI — food search and fridge contents. This is how the user manages what's in the fridge. Think of it as the control panel on the door.
+- **Open fridge** (V2+): Triggered by an "open" interaction. The fridge swings open to reveal the interior — instead of food items, the shelves display recipe results. Recipe search and filtering live here. The open state is the bridge between "what I have" and "what I can make."
+
+The transition between states should feel like physically opening a fridge — the closed-door UI slides or swings away to reveal the interior. Keep the skeuomorphic, modern-appliance aesthetic throughout both states.
