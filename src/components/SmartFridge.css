@@ -173,6 +173,11 @@
   margin-top: 1px;
 }
 
+.food-serving {
+  opacity: 0.6;
+  margin-left: 2px;
+}
+
 /* ── Add-item form (action tray) ────────────────────────────────────────── */
 .add-item-form {
   background: var(--action-bg);

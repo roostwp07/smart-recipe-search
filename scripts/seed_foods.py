@@ -23,11 +23,12 @@ OFF_COLUMNS = {
     "fat_g": "fat_100g",
     "fiber_g": "fiber_100g",
     "sodium_mg": "sodium_100g",
+    "image_url": "image_front_url",
 }
 
 OUTPUT_COLUMNS = [
     "name", "brand", "barcode", "serving_size_g",
-    "calories", "protein_g", "carbs_g", "fat_g", "fiber_g", "sodium_mg",
+    "calories", "protein_g", "carbs_g", "fat_g", "fiber_g", "sodium_mg", "image_url",
 ]
 
 
@@ -82,6 +83,7 @@ def transform(input_path: str, output_path: str) -> None:
                 "fat_g": fat,
                 "fiber_g": parse_float(row.get(OFF_COLUMNS["fiber_g"], "")),
                 "sodium_mg": sodium_mg,
+                "image_url": row.get(OFF_COLUMNS["image_url"], "").strip() or None,
             })
             written += 1
 

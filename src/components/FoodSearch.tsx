@@ -71,10 +71,11 @@ function FoodSearch({ onFoodSelected }: FoodSearchProps) {
                 <span className="food-name">{food.name}</span>
                 {food.brand && <span className="food-brand">{food.brand}</span>}
                 <span className="food-macros">
-                  {food.calories != null && `${food.calories} kcal`}
-                  {food.protein_g != null && ` · ${food.protein_g}g protein`}
-                  {food.carbs_g != null && ` · ${food.carbs_g}g carbs`}
-                  {food.fat_g != null && ` · ${food.fat_g}g fat`}
+                  {food.calories != null && `${Math.round(food.calories)} kcal`}
+                  {food.protein_g != null && ` · ${food.protein_g.toFixed(1)}g protein`}
+                  {food.carbs_g != null && ` · ${food.carbs_g.toFixed(1)}g carbs`}
+                  {food.fat_g != null && ` · ${food.fat_g.toFixed(1)}g fat`}
+                  <span className="food-serving"> per 100g</span>
                 </span>
               </button>
             </li>
