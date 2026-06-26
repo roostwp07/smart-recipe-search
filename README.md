@@ -1,34 +1,73 @@
-# React + TypeScript + Vite
+# Smart Recipe Search
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+An embeddable React component for managing a virtual fridge. Search for food products by name, view full nutritional info, and track what's in your fridge. Built for anyone serious about nutrition.
 
-Currently, two official plugins are available:
+Powered by [Open Food Facts](https://world.openfoodfacts.org) data and [Supabase](https://supabase.com).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Project structure
 
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+smart-recipe-search/
+├── data/                      # Local OFFs CSV export (gitignored — see setup below)
+├── scripts/
+│   └── seed_foods.py          # Transforms OFFs CSV into a Supabase-ready import file
+├── src/
+│   ├── components/
+│   │   ├── SmartFridge.tsx    # Root exportable component
+│   │   ├── FoodSearch.tsx     # Debounced autocomplete food search
+│   │   ├── AddItemForm.tsx    # Quantity/unit/expiry form after food selection
+│   │   ├── FridgeDisplay.tsx  # Current fridge contents with macros
+│   │   └── SmartFridge.css
+│   ├── hooks/
+│   │   └── useFridge.ts       # Fridge state: load, add, remove
+│   └── lib/
+│       ├── supabase-context.tsx
+│       └── database.types.ts
+└── App.tsx                    # Dev wrapper (not part of the exported component)
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Setup
+
+### 1. Supabase
+
+Create a Supabase project and run the schema migrations to create the `foods` and `fridge_items` tables and the `search_foods`/`get_fridge` RPC functions. Add your project URL and anon key to `.env.local`:
+
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+### 2. Seed the foods database
+
+The foods data comes from the [Open Food Facts](https://world.openfoodfacts.org/data) bulk CSV export. It's several gigabytes so it can't be committed to this repo — you'll need to download it yourself.
+
+1. Go to [world.openfoodfacts.org/data](https://world.openfoodfacts.org/data) and download the **CSV export** (the full world export, not a country subset)
+2. Place the extracted `.csv` file in the `data/` folder
+3. Run the transform script:
+   ```bash
+   python scripts/seed_foods.py data/<filename>.csv data/foods_import.csv
+   ```
+4. Load the result into Supabase:
+   ```bash
+   psql <your-connection-string> -c "\COPY foods(name,brand,barcode,serving_size_g,calories,protein_g,carbs_g,fat_g,fiber_g,sodium_mg) FROM 'data/foods_import.csv' CSV HEADER"
+   ```
+
+### 3. Run the dev server
+
+```bash
+npm install
+npm run dev
+```
+
+## Using the component
+
+```tsx
+import { SmartFridge } from './src/components/SmartFridge'
+
+<SmartFridge
+  supabaseUrl="..."
+  supabaseAnonKey="..."
+  onItemAdded={(item) => console.log('added', item)}
+  onItemRemoved={(id) => console.log('removed', id)}
+/>
+```
