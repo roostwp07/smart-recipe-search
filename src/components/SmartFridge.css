@@ -129,8 +129,7 @@
   flex-direction: column;
   gap: 1px;
   max-height: 280px;
-  overflow-y: scroll;
-  overscroll-behavior: contain;
+  overflow-y: auto;
 }
 
 .food-search-results li {
