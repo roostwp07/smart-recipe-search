@@ -72,6 +72,7 @@
 /* ── Food search ────────────────────────────────────────────────────────── */
 .food-search {
   position: relative;
+  z-index: 100;
 }
 
 .food-search input[type='search'] {
@@ -112,8 +113,13 @@
 }
 
 .food-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10;
   list-style: none;
-  margin: 4px 0 0;
+  margin: 0;
   padding: 4px;
   background: #e0eaef;
   border: 1px solid rgba(140, 180, 200, 0.35);
@@ -123,12 +129,12 @@
   flex-direction: column;
   gap: 1px;
   max-height: 280px;
-  overflow-y: auto;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
 }
 
 .food-search-results li {
   border-radius: 7px;
-  overflow: hidden;
 }
 
 .food-search-results button {
