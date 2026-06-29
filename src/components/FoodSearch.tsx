@@ -30,6 +30,9 @@ function FoodSearch({ onFoodSelected }: FoodSearchProps) {
       const { data, error } = await supabase.rpc('search_foods', { query: query.trim() })
       setIsLoading(false)
 
+      if (error) {
+        console.error('search_foods RPC error:', error)
+      }
       if (!error && data) {
         setResults(data)
         setIsOpen(true)
@@ -68,14 +71,20 @@ function FoodSearch({ onFoodSelected }: FoodSearchProps) {
           {results.map(food => (
             <li key={food.id} role="option">
               <button type="button" onClick={() => handleSelect(food)}>
-                <span className="food-name">{food.name}</span>
-                {food.brand && <span className="food-brand">{food.brand}</span>}
-                <span className="food-macros">
-                  {food.calories != null && `${Math.round(food.calories)} kcal`}
-                  {food.protein_g != null && ` · ${food.protein_g.toFixed(1)}g protein`}
-                  {food.carbs_g != null && ` · ${food.carbs_g.toFixed(1)}g carbs`}
-                  {food.fat_g != null && ` · ${food.fat_g.toFixed(1)}g fat`}
-                  <span className="food-serving"> per 100g</span>
+                {food.image_url
+                  ? <img className="food-thumb" src={food.image_url} alt={food.name} loading="lazy" />
+                  : <div className="food-thumb food-thumb--placeholder" aria-hidden />
+                }
+                <span className="food-info">
+                  <span className="food-name">{food.name}</span>
+                  {food.brand && <span className="food-brand">{food.brand}</span>}
+                  <span className="food-macros">
+                    {food.calories != null && `${Math.round(food.calories)} kcal`}
+                    {food.protein_g != null && ` · ${food.protein_g.toFixed(1)}g protein`}
+                    {food.carbs_g != null && ` · ${food.carbs_g.toFixed(1)}g carbs`}
+                    {food.fat_g != null && ` · ${food.fat_g.toFixed(1)}g fat`}
+                  </span>
+                  <span className="food-serving">per 100g</span>
                 </span>
               </button>
             </li>

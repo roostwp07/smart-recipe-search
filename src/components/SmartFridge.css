@@ -139,8 +139,9 @@
 .food-search-results button {
   all: unset;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
@@ -153,6 +154,26 @@
     background: var(--cold-blue-dim);
     outline: none;
   }
+}
+
+.food-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 5px;
+  flex-shrink: 0;
+  background: var(--cold-blue-dim);
+}
+
+.food-thumb--placeholder {
+  background: var(--cold-blue-dim);
+}
+
+.food-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 /* ── Shared food label pieces ───────────────────────────────────────────── */
@@ -174,8 +195,8 @@
 }
 
 .food-serving {
+  font-size: 10px;
   opacity: 0.6;
-  margin-left: 2px;
 }
 
 /* ── Add-item form (action tray) ────────────────────────────────────────── */

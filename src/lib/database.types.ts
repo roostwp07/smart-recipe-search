@@ -32,6 +32,7 @@ export type Database = {
           fat_g: number | null
           fiber_g: number | null
           sodium_mg: number | null
+          image_url: string | null
         }
         Insert: {
           name: string
@@ -44,6 +45,7 @@ export type Database = {
           fat_g?: number | null
           fiber_g?: number | null
           sodium_mg?: number | null
+          image_url?: string | null
         }
         Update: {
           name?: string
@@ -56,6 +58,7 @@ export type Database = {
           fat_g?: number | null
           fiber_g?: number | null
           sodium_mg?: number | null
+          image_url?: string | null
         }
         Relationships: []
       }
@@ -109,6 +112,7 @@ export type Database = {
           fat_g: number | null
           fiber_g: number | null
           sodium_mg: number | null
+          image_url: string | null
         }[]
       }
       get_fridge: {

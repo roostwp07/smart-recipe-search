@@ -23,7 +23,7 @@ OFF_COLUMNS = {
     "fat_g": "fat_100g",
     "fiber_g": "fiber_100g",
     "sodium_mg": "sodium_100g",
-    "image_url": "image_front_url",
+    "image_url": "image_url",
 }
 
 OUTPUT_COLUMNS = [
@@ -62,9 +62,9 @@ def transform(input_path: str, output_path: str) -> None:
             carbs = parse_float(row.get(OFF_COLUMNS["carbs_g"], ""))
             fat = parse_float(row.get(OFF_COLUMNS["fat_g"], ""))
 
-            # Require at least calories + one macro to be present and non-negative
+            # Require calories + all three macros to be present and non-negative
             has_calories = calories is not None and calories >= 0
-            has_macro = any(v is not None and v >= 0 for v in [protein, carbs, fat])
+            has_macro = all(v is not None and v >= 0 for v in [protein, carbs, fat])
             if not has_calories or not has_macro:
                 skipped += 1
                 continue
