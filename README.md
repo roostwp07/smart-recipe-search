@@ -8,9 +8,11 @@ Powered by [Open Food Facts](https://world.openfoodfacts.org) data and [Supabase
 
 ```
 smart-recipe-search/
-├── data/                      # Local OFFs CSV export (gitignored — see setup below)
+├── data/                      # Gitignored data files — download/generate locally (see setup below)
+│   ├── en.openfoodfacts.org.products.csv   # Raw OFF bulk export (~12 GB, tab-separated)
+│   └── foods_import.csv                    # Cleaned, filtered output from seed_foods.py — ready to COPY into Supabase
 ├── scripts/
-│   └── seed_foods.py          # Transforms OFFs CSV into a Supabase-ready import file
+│   └── seed_foods.py          # Transforms the raw OFF export into a Supabase-ready import file
 ├── src/
 │   ├── components/
 │   │   ├── SmartFridge.tsx    # Root exportable component
