@@ -1,3 +1,20 @@
+export type Recipe = {
+  id: number
+  title: string
+  image_url: string | null
+  source_url: string | null
+  ready_in_minutes: number | null
+  servings: number | null
+  aggregate_likes: number | null
+  spoonacular_score: number | null
+  calories: number | null
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
+  fiber_g: number | null
+  cached_at: string
+}
+
 export type FridgeItem = {
   id: number
   food_id: number
@@ -19,6 +36,12 @@ export type FridgeItem = {
 export type Database = {
   public: {
     Tables: {
+      recipes: {
+        Row: Recipe
+        Insert: Omit<Recipe, 'cached_at'> & { cached_at?: string }
+        Update: Partial<Omit<Recipe, 'id'>>
+        Relationships: []
+      }
       foods: {
         Row: {
           id: number
@@ -98,6 +121,18 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      search_recipes: {
+        Args: {
+          target_cal?: number | null
+          target_protein?: number | null
+          target_carbs?: number | null
+          target_fat?: number | null
+          cal_tolerance?: number
+          macro_tolerance?: number
+          max_results?: number
+        }
+        Returns: Recipe[]
+      }
       search_foods: {
         Args: { query: string; max_results?: number }
         Returns: {
