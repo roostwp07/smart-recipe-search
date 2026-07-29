@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSupabase } from '../lib/supabase-context'
-import type { Recipe } from '../lib/database.types'
+import type { Recipe, FridgeItem, RecipeWithMatch, SpoonacularRecipeInfo } from '../lib/database.types'
+import { useFridgeMatch } from './useFridgeMatch'
 
 export interface MacroTargets {
   calories?: number
@@ -101,15 +102,44 @@ async function fetchFromSpoonacular(targets: MacroTargets): Promise<SpoonacularR
   return data.results ?? []
 }
 
+/**
+ * Fetch ingredient lists for a batch of recipe IDs using informationBulk.
+ * Returns an array of recipe info objects, each containing extendedIngredients.
+ * Only fetches IDs that don't already have ingredients cached.
+ */
+async function fetchIngredientsBulk(recipeIds: number[]): Promise<SpoonacularRecipeInfo[]> {
+  if (recipeIds.length === 0) return []
+
+  const params = new URLSearchParams({
+    apiKey: SPOONACULAR_KEY,
+    ids: recipeIds.join(','),
+    includeNutrition: 'false',
+  })
+
+  const res = await fetch(
+    `https://api.spoonacular.com/recipes/informationBulk?${params.toString()}`
+  )
+
+  if (!res.ok) {
+    // Non-fatal — ingredient data is best-effort
+    console.warn(`informationBulk error: ${res.status}`)
+    return []
+  }
+
+  return res.json() as Promise<SpoonacularRecipeInfo[]>
+}
+
 export function useRecipeSearch() {
   const supabase = useSupabase()
+  const { matchRecipesToFridge, isMatching } = useFridgeMatch()
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [tieredRecipes, setTieredRecipes] = useState<RecipeWithMatch[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
   const [lastTargets, setLastTargets] = useState<MacroTargets | null>(null)
 
-  async function search(targets: MacroTargets) {
+  async function search(targets: MacroTargets, fridgeItems: FridgeItem[] = []) {
     // Require at least one target
     if (
       targets.calories == null &&
@@ -121,6 +151,7 @@ export function useRecipeSearch() {
     setIsLoading(true)
     setError(null)
     setRecipes([])
+    setTieredRecipes([])
     setHasSearched(false)
     setLastTargets(targets)
 
@@ -138,8 +169,10 @@ export function useRecipeSearch() {
       const cachedResults = cached ?? []
 
       if (cachedResults.length >= CACHE_MIN_RESULTS) {
-        // Cache hit — use it directly
         setRecipes(cachedResults)
+        void backfillMissingIngredients(cachedResults.map(r => r.id))
+        const tiered = await matchRecipesToFridge(cachedResults, fridgeItems)
+        setTieredRecipes(tiered)
         return
       }
 
@@ -149,17 +182,18 @@ export function useRecipeSearch() {
       if (spoonResults.length > 0) {
         const rows = spoonResults.map(toRecipeRow)
 
-        // Upsert into cache (ignore conflicts on id — update all fields)
         const { error: upsertError } = await supabase
           .from('recipes')
           .upsert(rows, { onConflict: 'id' })
 
         if (upsertError) {
-          // Non-fatal — log but continue with data we have
           console.warn('Failed to cache recipes:', upsertError.message)
         }
 
-        // 3. Re-query the RPC so ranking SQL applies to the freshly cached data
+        const newIds = spoonResults.map(r => r.id)
+        void fetchAndStoreIngredients(newIds)
+
+        // 3. Re-query so ranking SQL applies
         const { data: fresh, error: freshError } = await supabase.rpc('search_recipes', {
           target_cal: targets.calories ?? null,
           target_protein: targets.protein ?? null,
@@ -168,10 +202,14 @@ export function useRecipeSearch() {
         })
 
         if (freshError) throw new Error(freshError.message)
-        setRecipes(fresh ?? [])
+        const freshResults = fresh ?? []
+        setRecipes(freshResults)
+        const tiered = await matchRecipesToFridge(freshResults, fridgeItems)
+        setTieredRecipes(tiered)
       } else {
-        // Spoonacular returned nothing — show whatever was in cache (even if sparse)
         setRecipes(cachedResults)
+        const tiered = await matchRecipesToFridge(cachedResults, fridgeItems)
+        setTieredRecipes(tiered)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Recipe search failed')
@@ -181,12 +219,80 @@ export function useRecipeSearch() {
     }
   }
 
+  /**
+   * Fetch ingredient data from Spoonacular and upsert into recipe_ingredients.
+   * Skips any recipe IDs that already have ingredients stored.
+   */
+  async function fetchAndStoreIngredients(recipeIds: number[]): Promise<void> {
+    if (recipeIds.length === 0) return
+
+    // Check which recipe IDs already have ingredients in the DB
+    const { data: existing, error: selectError } = await supabase
+      .from('recipe_ingredients')
+      .select('recipe_id')
+      .in('recipe_id', recipeIds)
+
+    if (selectError) {
+      console.warn('[ingredients] select error:', selectError.message)
+      return
+    }
+
+    const existingIds = new Set((existing ?? []).map(r => r.recipe_id))
+    const missingIds = recipeIds.filter(id => !existingIds.has(id))
+
+    if (missingIds.length === 0) return
+
+    const recipeInfos = await fetchIngredientsBulk(missingIds)
+    if (recipeInfos.length === 0) return
+
+    const ingredientRows = recipeInfos.flatMap(recipe =>
+      (recipe.extendedIngredients ?? []).map(ing => ({
+        recipe_id: recipe.id,
+        spoonacular_ingredient_id: ing.id ?? null,
+        ingredient_name: ing.name,
+        amount_metric: ing.measures?.metric?.amount ?? ing.amount ?? null,
+        unit_metric: ing.measures?.metric?.unitShort ?? ing.unit ?? null,
+      }))
+    )
+
+    // Deduplicate by (recipe_id, ingredient_name) — some recipes list the same
+    // ingredient twice (e.g. "salt" in two steps), which causes Postgres to
+    // reject the batch with "ON CONFLICT DO UPDATE command cannot affect row a second time"
+    const seen = new Set<string>()
+    const dedupedRows = ingredientRows.filter(row => {
+      const key = `${row.recipe_id}:${row.ingredient_name}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+
+    if (dedupedRows.length === 0) return
+
+    // Upsert — unique index on (recipe_id, ingredient_name) prevents duplicates
+    const { error } = await supabase
+      .from('recipe_ingredients')
+      .upsert(dedupedRows, { onConflict: 'recipe_id,ingredient_name' })
+
+    if (error) {
+      console.warn('Failed to store ingredient data:', error.message)
+    }
+  }
+
+  /**
+   * For cache-hit searches, check if any returned recipes are missing ingredient
+   * data and fetch it in the background.
+   */
+  async function backfillMissingIngredients(recipeIds: number[]): Promise<void> {
+    await fetchAndStoreIngredients(recipeIds)
+  }
+
   function reset() {
     setRecipes([])
+    setTieredRecipes([])
     setError(null)
     setHasSearched(false)
     setLastTargets(null)
   }
 
-  return { recipes, isLoading, error, hasSearched, lastTargets, search, reset }
+  return { recipes, tieredRecipes, isLoading: isLoading || isMatching, error, hasSearched, lastTargets, search, reset }
 }

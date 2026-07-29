@@ -24,7 +24,7 @@ type Mode = 'closed' | 'open'
 // Inner component so hooks run inside the context provider
 function FridgeRoot({ onItemAdded, onItemRemoved }: Pick<SmartFridgeProps, 'onItemAdded' | 'onItemRemoved'>) {
   const { items, isLoading, addItem, removeItem } = useFridge()
-  const { recipes, isLoading: recipesLoading, error: recipesError, search, reset, hasSearched, lastTargets } = useRecipeSearch()
+  const { recipes: _recipes, tieredRecipes, isLoading: recipesLoading, error: recipesError, search, reset, hasSearched, lastTargets } = useRecipeSearch()
   const [pendingFood, setPendingFood] = useState<Food | null>(null)
   const [mode, setMode] = useState<Mode>('closed')
 
@@ -64,9 +64,9 @@ function FridgeRoot({ onItemAdded, onItemRemoved }: Pick<SmartFridgeProps, 'onIt
       {/* ── Interior (behind the door, always rendered) ── */}
       <div className="fridge-interior-panel" aria-hidden={!isOpen}>
         <div className="fridge-interior-shelf">
-          <MacroTargetForm onSearch={search} isLoading={recipesLoading} fridgeMacros={fridgeMacros} />
+          <MacroTargetForm onSearch={(targets) => search(targets, items)} isLoading={recipesLoading} fridgeMacros={fridgeMacros} />
           <RecipeResults
-            recipes={recipes}
+            tieredRecipes={tieredRecipes}
             isLoading={recipesLoading}
             error={recipesError}
             hasSearched={hasSearched}
